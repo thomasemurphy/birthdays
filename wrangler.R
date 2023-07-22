@@ -8,8 +8,10 @@ library(baseballr)
 
 setwd('baseball/birthdays')
 
+# excel file from https://www.smartfantasybaseball.com/tag/player-id/
 player_id_map <- read_csv('player_id_map.csv')
 
+# use the Lahman data set to get everyone's birthday
 birthdays <- People %>%
   mutate(finalGame = as_date(finalGame)) %>%
   filter(finalGame >= as_date('2000-01-01')) %>%
@@ -18,6 +20,7 @@ birthdays <- People %>%
     by = c('bbrefID' = 'BREFID')
   )
 
+# only get april-september birthdays
 in_season_birthdays <- birthdays %>%
   filter(birthMonth >= 4 & birthMonth <= 9) %>%
   select(playerID, nameFirst, nameLast,
@@ -27,9 +30,11 @@ in_season_birthdays <- birthdays %>%
   filter(!is.na(MLBID)) %>%
   mutate(debut_year = year(debut), final_year = year(finalGame))
 
-
+# super inefficient loop for downloading each player's birthday box scores
+# loop over players
 for (player_count in seq(1143, 1460)) {
   
+  # try every year since 2000 for this player
   my_player_id <- in_season_birthdays$MLBID[player_count]
   print(player_count)
   print(in_season_birthdays$playerID[player_count])
@@ -38,6 +43,7 @@ for (player_count in seq(1143, 1460)) {
   
   for (this_year in seq(start_year, end_year)) {
     
+    # construct the game date
     game_date <- ymd(
       paste0(
         this_year,
@@ -48,10 +54,11 @@ for (player_count in seq(1143, 1460)) {
       )
     )
     
+    # use the baseballr function mlb_game_pks to get all games for this date
     my_mlb_pks <- mlb_game_pks(game_date)
-    
     all_game_pks <- my_mlb_pks$game_pk
     
+    # this is so bad...loop through all games until the one the player played in is found
     game_pk_count <- 1
     found_game <- FALSE
     player_game_df <- NULL
@@ -70,6 +77,7 @@ for (player_count in seq(1143, 1460)) {
       game_pk_count <- game_pk_count + 1
     }
     
+    # save the box score to csv
     if (!is.null(player_game_df)) {
       filename <- paste0(
         'data/',
@@ -84,44 +92,3 @@ for (player_count in seq(1143, 1460)) {
     
   }
 }
-
-
-# javy_id <- player_id_map %>%
-#   filter(PLAYERNAME == 'Javier Baez') %>%
-#   pull(MLBID)
-
-# javy_game_stats %>%
-#   # filter(group == 'hitting') %>%
-#   select(
-#     summary,
-#     play_type,
-#     play_pitch_data_coordinates_x
-#     )
-
-# game_id <- my_mlb_pks %>%
-#   filter(teams.home.team.name == 'Chicago Cubs') %>%
-#   pull(game_pk)
-# 
-# javy_game_stats <- mlb_player_game_stats(
-#   person_id = javy_id,
-#   game_pk = game_id
-# )
-
-# baez_ids <- playerid_lookup(last_name = 'Báez', first_name = 'Javier')
-# baez_mlbamid <- baez_ids['mlbam_id'][[1]]
-# 
-# my_mlb_pks %>%
-# select(
-#   game_pk,
-#   gameDate,
-#   teams.away.team.name,
-#   teams.home.team.name
-# )
-  
-# probably dont want retrosheet for this
-# retrosheet_22 <- read_delim(
-# '../../retrosheet/gamelog/GL2022.TXT',
-# col_names = FALSE
-# )
-# gl_headers <- names(read_csv('retrosheet_gamelog_headers.csv'))
-# names(retrosheet_22) <- gl_headers
