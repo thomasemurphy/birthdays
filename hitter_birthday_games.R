@@ -28,15 +28,11 @@ in_season_birthdays <- birthdays %>%
   mutate(debut_year = year(debut), final_year = year(finalGame))
 
 data_files <- list.files(
-  path = 'data/',
+  path = 'data/birthday_box_scores/',
   pattern = '.csv',
   full.names = FALSE,
   ignore.case = FALSE
   )
-
-# df1 <- read_csv(paste0('data/', data_files[1]))
-# df2 <- read_csv(paste0('data/', data_files[2]))
-# df3 <- read_csv(paste0('data/', data_files[3]))
 
 hitting_stats <- c(
   'player_id',
@@ -70,9 +66,11 @@ for (data_file in data_files) {
     paste0('data/birthday_box_scores/', data_file),
     show_col_types = FALSE
     )
+  game_date <- substr(data_file, 8, 17)
   clean_hitter_df <- raw_df %>%
     filter(group == 'hitting') %>%
     select(all_of(hitting_stats))
+  clean_hitter_df$game_date <- game_date
   birthday_df <- rbind(birthday_df, clean_hitter_df)
 }
 
@@ -85,6 +83,4 @@ birthdays_augm %>%
   select(nameFirst, nameLast, player_id, hits, plate_appearances) %>%
   print(n = 10)
 
-write_csv(birthday_df, 'data/cleaned/birthday_hitter_stats.csv')
-
-write.csv(birthday_df, '')
+write_csv(birthdays_augm, 'data/cleaned/birthday_hitter_stats.csv')
