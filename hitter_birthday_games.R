@@ -8,17 +8,18 @@ library(baseballr)
 
 setwd('baseball/birthdays')
 
+# excel file from https://www.smartfantasybaseball.com/tag/player-id/
 player_id_map <- read_csv('player_id_map.csv')
 
-birthdays <- People %>%
+# should clean this up...this is exactly what happens in the wrangler
+# move this code into its own function/script during refactor
+in_season_birthdays <- People %>%
   mutate(finalGame = as_date(finalGame)) %>%
   filter(finalGame >= as_date('2000-01-01')) %>%
   left_join(
     select(player_id_map, c('BREFID', 'MLBID')),
     by = c('bbrefID' = 'BREFID')
-  )
-
-in_season_birthdays <- birthdays %>%
+  ) %>%
   filter(birthMonth >= 4 & birthMonth <= 9) %>%
   select(playerID, nameFirst, nameLast,
          birthDate, birthYear, birthMonth, birthDay,
@@ -27,6 +28,7 @@ in_season_birthdays <- birthdays %>%
   filter(!is.na(MLBID)) %>%
   mutate(debut_year = year(debut), final_year = year(finalGame))
 
+# get the filenames in the box scores directory
 data_files <- list.files(
   path = 'data/birthday_box_scores/',
   pattern = '.csv',
@@ -34,6 +36,7 @@ data_files <- list.files(
   ignore.case = FALSE
   )
 
+# manually found these from the columns in data_files[1]
 hitting_stats <- c(
   'player_id',
   'game_pk',
@@ -59,8 +62,8 @@ hitting_stats <- c(
   'sac_flies'
 )
 
+# make clean birthday_df with just desired hitting stats
 birthday_df <- data.frame()
-
 for (data_file in data_files) {
   raw_df <- read_csv(
     paste0('data/birthday_box_scores/', data_file),
@@ -74,13 +77,11 @@ for (data_file in data_files) {
   birthday_df <- rbind(birthday_df, clean_hitter_df)
 }
 
+# add bio data for convenience later
 birthdays_augm <- birthday_df %>%
   left_join(in_season_birthdays,
             by = c('player_id' = 'MLBID')
             )
 
-birthdays_augm %>%
-  select(nameFirst, nameLast, player_id, hits, plate_appearances) %>%
-  print(n = 10)
-
+# save clean dataframe
 write_csv(birthdays_augm, 'data/cleaned/birthday_hitter_stats.csv')

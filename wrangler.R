@@ -8,27 +8,11 @@ library(baseballr)
 
 setwd('baseball/birthdays')
 
-# excel file from https://www.smartfantasybaseball.com/tag/player-id/
-player_id_map <- read_csv('player_id_map.csv')
+# this script downloads player-game box scores for all players in the player_id_map csv
+# who played on their birthday between 2000 and 2022
 
-# use the Lahman data set to get everyone's birthday
-birthdays <- People %>%
-  mutate(finalGame = as_date(finalGame)) %>%
-  filter(finalGame >= as_date('2000-01-01')) %>%
-  left_join(
-    select(player_id_map, c('BREFID', 'MLBID')),
-    by = c('bbrefID' = 'BREFID')
-  )
-
-# only get april-september birthdays
-in_season_birthdays <- birthdays %>%
-  filter(birthMonth >= 4 & birthMonth <= 9) %>%
-  select(playerID, nameFirst, nameLast,
-         birthDate, birthYear, birthMonth, birthDay,
-         debut, finalGame,
-         bbrefID, MLBID) %>%
-  filter(!is.na(MLBID)) %>%
-  mutate(debut_year = year(debut), final_year = year(finalGame))
+# see get_in_season_birthdays.R
+in_season_birthdays <- read_csv('data/in_season_birthdays.csv')
 
 # super inefficient loop for downloading each player's birthday box scores
 # loop over players
