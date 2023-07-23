@@ -65,3 +65,50 @@ full_season_slash <- c(
   calculate_obp(birthday_boys_season_stats),
   calculate_slg(birthday_boys_season_stats)
 )
+
+# look at some players
+
+birthday_by_player <- birthday_hits %>%
+  group_by(player_id, nameFirst, nameLast, birthDate) %>%
+  summarize(pa = sum(plate_appearances),
+            ba = sum(hits) / sum(at_bats),
+            obp = (sum(hits) + sum(base_on_balls) + sum(hit_by_pitch)) / sum(plate_appearances),
+            slg = sum(total_bases) / sum(at_bats),
+            ops = obp + slg) %>%
+  arrange(desc(pa)) %>%
+  filter(pa >= 15) %>%
+  arrange(desc(ops)) %>%
+  print(n = 20)
+
+bday_player_ids <- birthday_by_player$player_id
+
+non_birthday_by_player <- birthday_boys_season_stats %>%
+  filter(player_id %in% bday_player_ids) %>%
+  group_by(player_id) %>%
+  summarize(pa = sum(plate_appearances),
+            ba = sum(hits) / sum(at_bats),
+            obp = (sum(hits) + sum(base_on_balls) + sum(hit_by_pitch)) / sum(plate_appearances),
+            slg = sum(total_bases) / sum(at_bats),
+            ops = obp + slg) %>%
+  filter(pa >= 15) %>%
+  arrange(desc(ops)) %>%
+  print(n = 20)
+
+birthday_by_player <- birthday_by_player %>%
+  left_join(
+    non_birthday_by_player,
+    by = 'player_id',
+    suffix = c('_bd', '_nbd')
+  ) %>%
+  mutate(ops_diff = ops_bd - ops_nbd) %>%
+  arrange(desc(ops_diff)) %>%
+  print(n = 20)
+
+birthday_by_player %>%
+  arrange(desc(ops_diff)) %>%
+  print(n = 20)
+
+birthday_hits %>%
+  filter(player_id == 455104) %>%
+  select(game_date, plate_appearances, hits)
+  
