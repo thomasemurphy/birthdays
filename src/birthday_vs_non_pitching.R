@@ -6,7 +6,7 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 calculate_k_rate <- function(pitcher_df) {
   tot_ip <- sum(pitcher_df$outs) / 3
@@ -20,7 +20,7 @@ calculate_ra <- function(pitcher_df) {
   tot_r / tot_ip * 9
 }
 
-birthday_pitchers <- read_csv('data/cleaned/birthday_pitcher_stats.csv') %>%
+birthday_pitchers <- read_csv('../data/birthday_stats_cleaned/birthday_pitcher_stats.csv') %>%
   filter(!is.na(outs))
 
 birthday_pitchers$game_year <- substr(birthday_pitchers$game_date, 1, 4)
@@ -29,7 +29,7 @@ unique_years <- unique(birthday_pitchers$game_year)
 birthday_boys_season_stats <- data.frame()
 for (year_str in unique_years) {
   print(year_str)
-  season_stats_fname <- paste0('data/season_data/pitching_stats_',
+  season_stats_fname <- paste0('../data/player_season_stats/pitching_stats_',
                                year_str,
                                '.csv')
   season_stats_df <- read_csv(season_stats_fname)

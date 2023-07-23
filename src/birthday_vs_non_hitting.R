@@ -6,7 +6,7 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 calculate_obp <- function(hitter_df) {
   tot_ob <- sum(hitter_df$hits) +
@@ -27,7 +27,7 @@ calculate_slg <- function(hitter_df) {
   slg
 }
 
-birthday_hits <- read_csv('data/cleaned/birthday_hitter_stats.csv')
+birthday_hits <- read_csv('../data/birthday_stats_cleaned/birthday_hitter_stats.csv')
 
 birthday_hits$game_year <- substr(birthday_hits$game_date, 1, 4)
 unique_years <- unique(birthday_hits$game_year)
@@ -35,7 +35,7 @@ unique_years <- unique(birthday_hits$game_year)
 birthday_boys_season_stats <- data.frame()
 for (year_str in unique_years) {
   print(year_str)
-  season_stats_fname <- paste0('data/season_data/hitting_stats_',
+  season_stats_fname <- paste0('../data/player_season_stats/hitting_stats_',
                                year_str,
                                '.csv')
   season_stats_df <- read_csv(season_stats_fname)

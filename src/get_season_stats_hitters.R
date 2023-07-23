@@ -6,12 +6,12 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 # this script gets all the unique years in data/birthday_box_scores, and gets complete hitting stats for those years using baseballr::mlb_stats
 
 data_files <- list.files(
-  path = 'data/birthday_box_scores/',
+  path = '../data/birthday_box_scores/',
   pattern = '.csv',
   full.names = FALSE,
   ignore.case = FALSE
@@ -27,6 +27,6 @@ for (year in all_years) {
     season = year,
     limit = 10000
   )
-  fname <- paste0('data/season_data/hitting_stats_', year, '.csv')
+  fname <- paste0('../data/player_season_stats/hitting_stats_', year, '.csv')
   write_csv(hitting_stats, fname)
 }

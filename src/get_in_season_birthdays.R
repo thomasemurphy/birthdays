@@ -1,9 +1,11 @@
+library(tidyverse)
+library(lubridate)
 library(Lahman)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 # excel file from https://www.smartfantasybaseball.com/tag/player-id/
-player_id_map <- read_csv('player_id_map.csv')
+player_id_map <- read_csv('../data/player_lookup/player_id_map.csv')
 
 in_season_birthdays <- People %>%
   mutate(finalGame = as_date(finalGame)) %>%
@@ -20,4 +22,4 @@ in_season_birthdays <- People %>%
   filter(!is.na(MLBID)) %>%
   mutate(debut_year = year(debut), final_year = year(finalGame))
 
-write_csv(in_season_birthdays, 'data/in_season_birthdays.csv')
+write_csv(in_season_birthdays, '../data/player_lookup/in_season_birthdays.csv')

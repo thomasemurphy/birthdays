@@ -6,13 +6,15 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 # this script downloads player-game box scores for all players in the player_id_map csv
 # who played on their birthday between 2000 and 2022
+# do not run this script unless you really need to
+# it is very slow and inefficient
 
 # see get_in_season_birthdays.R
-in_season_birthdays <- read_csv('data/in_season_birthdays.csv')
+in_season_birthdays <- read_csv('../data/player_lookup/in_season_birthdays.csv')
 
 # super inefficient loop for downloading each player's birthday box scores
 # loop over players
@@ -64,7 +66,7 @@ for (player_count in seq(1143, 1460)) {
     # save the box score to csv
     if (!is.null(player_game_df)) {
       filename <- paste0(
-        'data/',
+        '../data/birthday_box_scores/',
         my_player_id,
         '_',
         game_date,

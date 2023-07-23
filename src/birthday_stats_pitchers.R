@@ -6,14 +6,14 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 # see get_in_season_birthdays.R
-in_season_birthdays <- read_csv('data/in_season_birthdays.csv')
+in_season_birthdays <- read_csv('../data/player_lookup/in_season_birthdays.csv')
 
 # get the filenames in the box scores directory
 data_files <- list.files(
-  path = 'data/birthday_box_scores/',
+  path = '../data/birthday_box_scores/',
   pattern = '.csv',
   full.names = FALSE,
   ignore.case = FALSE
@@ -84,4 +84,4 @@ birthdays_augm <- birthday_df %>%
             )
 
 # save clean dataframe
-write_csv(birthdays_augm, 'data/cleaned/birthday_pitcher_stats.csv')
+write_csv(birthdays_augm, '../data/birthday_stats_cleaned/birthday_pitcher_stats.csv')

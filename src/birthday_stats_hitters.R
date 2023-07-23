@@ -6,10 +6,10 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
-setwd('baseball/birthdays')
+setwd('baseball/birthdays/src')
 
 # excel file from https://www.smartfantasybaseball.com/tag/player-id/
-player_id_map <- read_csv('player_id_map.csv')
+player_id_map <- read_csv('../data/player_lookup/player_id_map.csv')
 
 # should clean this up...this is exactly what happens in the wrangler
 # move this code into its own function/script during refactor
@@ -30,7 +30,7 @@ in_season_birthdays <- People %>%
 
 # get the filenames in the box scores directory
 data_files <- list.files(
-  path = 'data/birthday_box_scores/',
+  path = '../data/birthday_box_scores/',
   pattern = '.csv',
   full.names = FALSE,
   ignore.case = FALSE
@@ -66,7 +66,7 @@ hitting_stats <- c(
 birthday_df <- data.frame()
 for (data_file in data_files) {
   raw_df <- read_csv(
-    paste0('data/birthday_box_scores/', data_file),
+    paste0('../data/birthday_box_scores/', data_file),
     show_col_types = FALSE
     )
   game_date <- substr(data_file, 8, 17)
@@ -84,4 +84,4 @@ birthdays_augm <- birthday_df %>%
             )
 
 # save clean dataframe
-write_csv(birthdays_augm, 'data/cleaned/birthday_hitter_stats.csv')
+write_csv(birthdays_augm, '../data/birthday_stats_cleaned/birthday_hitter_stats.csv')
