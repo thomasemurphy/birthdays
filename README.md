@@ -18,4 +18,4 @@ This script contains some really bad code. For each player in `in_season_birthda
 
 If a box score was found for a player on their birthday, that box score was saved to `data/birthday_box_scores/[MLBID]_[date].csv`.
 
-###`birthday_stats_hitting.R` and `birthday_stats_pitching.R`
+### `birthday_stats_hitting.R` and `birthday_stats_pitching.R`
