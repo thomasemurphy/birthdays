@@ -9,14 +9,19 @@ Player-game box scores were downloaded for 1,108 player-games that fell on the p
 
 ### Hitting
 
-This dataset consisted of 1,108 player-birthday-games among 469 unique players. Players in this dataset hit worse on their birthday.
+This dataset consisted of 1,108 player-birthday-games among 469 unique players. Non-birthday stats were calculated by subtracting birthday-game totals from full-season totals.
 
 |     | Plate appearances | Batting average | On-base average | Slugging average |
 | :--: | :---------: | :--: | :--: | :--: |
 | **Birthdays**     |  3,991     | .249 | .308 | .410 |
-| **Full season**   | 433,376    | .261 | .328 | .432 |
+| **Non-birthdays**   | 429,385    | .261 | .328 | .432 |
+| **p-value**   |    | .049 | .0045 | .0039 |
 
-For on-base average, if the players on their birthdays were actually the same players they were throughout the season (.328 OBA), the probability of observing a birthday on-base average of .308 or lower in 3,991 plate appearances (p-value) is .004. Therefore, the players in this dataset had a statistically significantly lower OBA on their birthdays. The p-value for slugging average was .004 (significantly worse) and for batting average was .051 (right on the black).
+Hitters in this dataset performed statistically significantly worse on their birthdays than on their non-birthdays.
+
+#### Calculating the p-values
+
+Taking for example on-base average, if the players on their birthdays were actually the same players they were on their non-birthdays (.328 OBA), the probability of observing a birthday on-base average of .308 or lower in 3,991 plate appearances (p-value) is .0045.
 
 ## More detail on the data pipeline, which is bad
 
@@ -43,5 +48,5 @@ These are sandbox scripts for comparing hitting and pitching performance on birt
 
 ## Thank you for these open-source packages
 * The [Lahman](https://cran.r-project.org/web/packages/Lahman/index.html) package for getting player birthdays
-* The [baseballr](https://billpetti.github.io/baseballr/reference/index.html) package for getting player-game box scores
+* The [baseballr](https://billpetti.github.io/baseballr/reference/index.html) package for getting player-game box scores and player-season totals
 * The lookup table at [Smart Fantasy Baseball](https://www.smartfantasybaseball.com/tools/) for lining up players' bbrefID with their MLBID

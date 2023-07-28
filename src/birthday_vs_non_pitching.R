@@ -48,6 +48,12 @@ birthday_boys_season_stats %>%
   select(player_id, season, player_full_name, runs, outs) %>%
   print(n = 10)
 
+nrow(birthday_pitchers)
+
+nrow(birthday_pitchers %>% distinct(player_id, game_year))
+
+length(unique(birthday_pitchers$player_id))
+
 birthdays_stats <- c(
   calculate_ra(birthday_pitchers),
   calculate_k_rate(birthday_pitchers)
