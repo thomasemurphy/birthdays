@@ -50,9 +50,36 @@ for (year_str in unique_years) {
   )
 }
 
+birthday_boys_season_stats <- birthday_boys_season_stats %>%
+  mutate(game_year = as.character(season)) %>%
+  distinct(player_id, game_year, .keep_all = TRUE)
+
 birthday_boys_season_stats %>%
-  select(player_id, season, player_full_name, hits, at_bats) %>%
+  select(player_id, season, game_year, player_full_name, hits, at_bats) %>%
   print(n = 10)
+
+birthday_boys_non_birthday <- birthday_boys_season_stats %>%
+  inner_join(birthday_hits,
+            by = c('player_id', 'game_year'),
+            suffix = c('_fs', '_bd'),
+            multiple = 'all'
+            ) %>%
+  group_by(player_id, game_year) %>%
+  summarize(
+    across(
+      c(hits_bd, at_bats_bd, plate_appearances_bd, base_on_balls_bd, hit_by_pitch_bd, total_bases_bd),
+      sum),
+    across(
+      c(hits_fs, at_bats_fs, plate_appearances_fs, base_on_balls_fs, hit_by_pitch_fs, total_bases_fs),
+      max)
+    ) %>%
+  mutate(hits = hits_fs - hits_bd,
+         at_bats = at_bats_fs - at_bats_bd,
+         plate_appearances = plate_appearances_fs - plate_appearances_bd,
+         base_on_balls = base_on_balls_fs - base_on_balls_bd,
+         hit_by_pitch = hit_by_pitch_fs - hit_by_pitch_bd,
+         total_bases = total_bases_fs - total_bases_bd
+         )
 
 birthdays_slash <- c(
   calculate_ba(birthday_hits),
@@ -65,16 +92,43 @@ full_season_slash <- c(
   calculate_obp(birthday_boys_season_stats),
   calculate_slg(birthday_boys_season_stats)
 )
+full_season_slash
+
+non_bd_slash <- c(
+  calculate_ba(birthday_boys_non_birthday),
+  calculate_obp(birthday_boys_non_birthday),
+  calculate_slg(birthday_boys_non_birthday)
+)
+non_bd_slash
+
+sum(birthday_boys_non_birthday$plate_appearances)
+sum(birthday_boys_season_stats$plate_appearances)
+sum(birthday_hits$plate_appearances)
+
+at_bats_bd <- sum(birthday_hits$at_bats)
+hits_bd <- sum(birthday_hits$hits)
+pa_bd <- sum(birthday_hits$plate_appearances)
+ob_bd <- sum(birthday_hits$base_on_balls) + sum(birthday_hits$hit_by_pitch) + hits_bd
+tb_bd <- sum(birthday_hits$total_bases)
+
+oba_nbd <- calculate_obp(birthday_boys_season_stats)
+ba_nbd <- calculate_ba(birthday_boys_non_birthday)
+slg_nbd <- calculate_slg(birthday_boys_non_birthday)
+
+p_value_ba <- pbinom(hits_bd, at_bats_bd, ba_nbd)
+p_value_oba <- pbinom(ob_bd, pa_bd, oba_nbd)
+p_value_slg <- pbinom(tb_bd, at_bats_bd, slg_nbd)
 
 # look at some players
 
 birthday_by_player <- birthday_hits %>%
   group_by(player_id, nameFirst, nameLast, birthDate) %>%
   summarize(pa = sum(plate_appearances),
-            ba = sum(hits) / sum(at_bats),
-            obp = (sum(hits) + sum(base_on_balls) + sum(hit_by_pitch)) / sum(plate_appearances),
-            slg = sum(total_bases) / sum(at_bats),
-            ops = obp + slg) %>%
+            hits = sum(hits),
+            at_bats = sum(at_bats),
+            base_on_balls = sum(base_on_balls),
+            hit_by_pitch = sum(hit_by_pitch)
+            ) %>%
   arrange(desc(pa)) %>%
   filter(pa >= 15) %>%
   arrange(desc(ops)) %>%
@@ -100,6 +154,10 @@ birthday_by_player <- birthday_by_player %>%
     by = 'player_id',
     suffix = c('_bd', '_nbd')
   ) %>%
+  mutate(
+    pa_nbd = pa_nbd - pa_bd,
+    hits_nbd
+    )
   mutate(ops_diff = ops_bd - ops_nbd) %>%
   arrange(desc(ops_diff)) %>%
   print(n = 20)
