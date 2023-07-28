@@ -105,8 +105,9 @@ birthday_by_player <- birthday_by_player %>%
   print(n = 20)
 
 birthday_by_player %>%
-  arrange(desc(ops_diff)) %>%
-  print(n = 20)
+  arrange(ops_diff) %>%
+  select(nameFirst, nameLast, birthDate, pa_bd, pa_nbd, ops_bd, ops_nbd, ops_diff) %>%
+  print(n = 10)
 
 birthday_hits %>%
   filter(player_id == 455104) %>%
