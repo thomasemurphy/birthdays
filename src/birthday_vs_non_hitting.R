@@ -67,10 +67,10 @@ birthday_boys_non_birthday <- birthday_boys_season_stats %>%
   group_by(player_id, game_year) %>%
   summarize(
     across(
-      c(hits_bd, at_bats_bd, plate_appearances_bd, base_on_balls_bd, hit_by_pitch_bd, total_bases_bd),
+      c(hits_bd, at_bats_bd, plate_appearances_bd, base_on_balls_bd, hit_by_pitch_bd, total_bases_bd, strike_outs_bd, home_runs_bd),
       sum),
     across(
-      c(hits_fs, at_bats_fs, plate_appearances_fs, base_on_balls_fs, hit_by_pitch_fs, total_bases_fs),
+      c(hits_fs, at_bats_fs, plate_appearances_fs, base_on_balls_fs, hit_by_pitch_fs, total_bases_fs, strike_outs_fs, home_runs_fs),
       max)
     ) %>%
   mutate(hits = hits_fs - hits_bd,
@@ -78,7 +78,9 @@ birthday_boys_non_birthday <- birthday_boys_season_stats %>%
          plate_appearances = plate_appearances_fs - plate_appearances_bd,
          base_on_balls = base_on_balls_fs - base_on_balls_bd,
          hit_by_pitch = hit_by_pitch_fs - hit_by_pitch_bd,
-         total_bases = total_bases_fs - total_bases_bd
+         total_bases = total_bases_fs - total_bases_bd,
+         strike_outs = strike_outs_fs - strike_outs_bd,
+         home_runs = home_runs_fs - home_runs_bd
          )
 
 birthdays_slash <- c(
@@ -110,10 +112,16 @@ hits_bd <- sum(birthday_hits$hits)
 pa_bd <- sum(birthday_hits$plate_appearances)
 ob_bd <- sum(birthday_hits$base_on_balls) + sum(birthday_hits$hit_by_pitch) + hits_bd
 tb_bd <- sum(birthday_hits$total_bases)
+home_runs_bd <- sum(birthday_hits$home_runs)
 
 walks_bd <- sum(birthday_hits$base_on_balls)
+strikeouts_bd <- sum(birthday_hits$strike_outs)
 
 walks_nbd <- sum(birthday_boys_non_birthday$base_on_balls)
+strikeouts_nbd <- sum(birthday_boys_non_birthday$strike_outs)
+home_runs_nbd <- sum(birthday_boys_non_birthday$home_runs)
+
+pa_nbd <- sum(birthday_boys_non_birthday$plate_appearances)
 
 oba_nbd <- calculate_obp(birthday_boys_season_stats)
 ba_nbd <- calculate_ba(birthday_boys_non_birthday)
@@ -122,6 +130,9 @@ slg_nbd <- calculate_slg(birthday_boys_non_birthday)
 p_value_ba <- pbinom(hits_bd, at_bats_bd, ba_nbd)
 p_value_oba <- pbinom(ob_bd, pa_bd, oba_nbd)
 p_value_slg <- pbinom(tb_bd, at_bats_bd, slg_nbd)
+p_value_walks <- pbinom(walks_bd, pa_bd, .08518695)
+p_value_strikeouts <- pbinom(strikeouts_bd, pa_bd, strikeouts_nbd / pa_nbd, lower.tail = FALSE)
+p_value_hr <- pbinom(home_runs_bd, pa_bd, home_runs_nbd / pa_nbd)
 
 # look at some players
 
