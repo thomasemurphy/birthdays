@@ -39,7 +39,7 @@ Pitchers in this dataset had a lower run allowance rate and a higher strikeout r
 
 #### Calculating the p-values
 
-The Poisson test (`poisson.test` in R)was used to calculate the p-values for run rate being lower on birthdays than non, and strikeout rate being higher on birthdays than non.
+The Poisson test (`poisson.test` in R) was used to calculate the p-values for run rate being lower on birthdays than non, and strikeout rate being higher on birthdays than non.
 
 ## More detail on the data pipeline, which is bad
 

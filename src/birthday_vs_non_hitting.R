@@ -127,42 +127,75 @@ birthday_by_player <- birthday_hits %>%
             hits = sum(hits),
             at_bats = sum(at_bats),
             base_on_balls = sum(base_on_balls),
-            hit_by_pitch = sum(hit_by_pitch)
+            hit_by_pitch = sum(hit_by_pitch),
+            total_bases = sum(total_bases)
             ) %>%
-  arrange(desc(pa)) %>%
-  filter(pa >= 15) %>%
-  arrange(desc(ops)) %>%
-  print(n = 20)
+  mutate(tot_ob = hits + base_on_balls + hit_by_pitch) %>%
+  mutate(
+    obp = tot_ob / pa,
+    slg = total_bases / at_bats,
+    ops = obp + slg
+  ) %>%
+  arrange(desc(pa))
 
 bday_player_ids <- birthday_by_player$player_id
 
-non_birthday_by_player <- birthday_boys_season_stats %>%
+non_birthday_by_player <- birthday_boys_non_birthday %>%
   filter(player_id %in% bday_player_ids) %>%
   group_by(player_id) %>%
   summarize(pa = sum(plate_appearances),
-            ba = sum(hits) / sum(at_bats),
-            obp = (sum(hits) + sum(base_on_balls) + sum(hit_by_pitch)) / sum(plate_appearances),
-            slg = sum(total_bases) / sum(at_bats),
-            ops = obp + slg) %>%
-  filter(pa >= 15) %>%
+            at_bats = sum(at_bats),
+            tot_ob = sum(hits) + sum(base_on_balls) + sum(hit_by_pitch),
+            total_bases = sum(total_bases)
+  ) %>%
+  mutate(
+    obp = tot_ob / pa,
+    slg = total_bases / at_bats,
+    ops = obp + slg
+    ) %>%
   arrange(desc(ops)) %>%
   print(n = 20)
 
-birthday_by_player <- birthday_by_player %>%
+birthday_vs_non_totals <- birthday_by_player %>%
   left_join(
     non_birthday_by_player,
     by = 'player_id',
     suffix = c('_bd', '_nbd')
   ) %>%
-  mutate(
-    pa_nbd = pa_nbd - pa_bd,
-    hits_nbd
-    )
   mutate(ops_diff = ops_bd - ops_nbd) %>%
   arrange(desc(ops_diff)) %>%
   print(n = 20)
 
+birthday_sub <- birthday_vs_non_totals %>%
+  select(player_id, nameFirst, nameLast, birthDate,
+         pa_bd, at_bats_bd, tot_ob_bd, total_bases_bd
+         ) %>%
+  mutate(game_type = 'bd') %>%
+  rename(c(
+    'pa' = 'pa_bd',
+    'at_bats' = 'at_bats_bd',
+    'tot_ob' = 'tot_ob_bd',
+    'total_bases' = 'total_bases_bd'
+  ))
+
+non_birthday_sub <- birthday_vs_non_totals %>%
+  select(player_id, nameFirst, nameLast, birthDate,
+         pa_nbd, at_bats_nbd, tot_ob_nbd, total_bases_nbd
+  ) %>%
+  mutate(game_type = 'nbd') %>%
+  rename(c(
+    'pa' = 'pa_nbd',
+    'at_bats' = 'at_bats_nbd',
+    'tot_ob' = 'tot_ob_nbd',
+    'total_bases' = 'total_bases_nbd'
+  ))
+
+birthday_vs_non_tidy <- rbind(non_birthday_sub, birthday_sub) %>%
+  arrange(nameLast) %>%
+  write.csv('../data/birthday_vs_non_totals_by_hitter.csv')
+
 birthday_by_player %>%
+  filter(pa_bd >= 15) %>%
   arrange(ops_diff) %>%
   select(nameFirst, nameLast, birthDate, pa_bd, pa_nbd, ops_bd, ops_nbd, ops_diff) %>%
   print(n = 10)

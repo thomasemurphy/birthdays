@@ -18,16 +18,20 @@ in_season_birthdays <- read_csv('../data/player_lookup/in_season_birthdays.csv')
 
 # super inefficient loop for downloading each player's birthday box scores
 # loop over players
-for (player_count in seq(1143, 1460)) {
+for (player_count in seq(1, 10)) {
   
   # try every year since 2000 for this player
   my_player_id <- in_season_birthdays$MLBID[player_count]
   print(player_count)
   print(in_season_birthdays$playerID[player_count])
+  print(in_season_birthdays$nameLast[player_count])
+  print(in_season_birthdays$nameFirst[player_count])
   start_year <- max(c(2000, in_season_birthdays$debut_year[player_count]))
   end_year <- in_season_birthdays$final_year[player_count]
   
   for (this_year in seq(start_year, end_year)) {
+    
+    print(this_year)
     
     # construct the game date
     game_date <- ymd(
@@ -56,6 +60,7 @@ for (player_count in seq(1143, 1460)) {
         person_id = my_player_id,
         game_pk = all_game_pks[game_pk_count]
       )
+      print(ncol(test_df))
       if (ncol(test_df) > 100) {
         found_game <- TRUE
         player_game_df <- test_df
@@ -72,7 +77,7 @@ for (player_count in seq(1143, 1460)) {
         game_date,
         '.csv'
       )
-      write.csv(player_game_df, filename)
+      # write.csv(player_game_df, filename)
       print(filename)
     }
     
