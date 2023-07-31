@@ -24,6 +24,7 @@ birthday_pitchers <- read_csv('../data/birthday_stats_cleaned/birthday_pitcher_s
   filter(!is.na(outs))
 
 birthday_pitchers$game_year <- substr(birthday_pitchers$game_date, 1, 4)
+birthday_pitchers$innings <- birthday_pitchers$outs / 3
 unique_years <- unique(birthday_pitchers$game_year)
 
 birthday_boys_season_stats <- data.frame()
@@ -44,22 +45,66 @@ for (year_str in unique_years) {
   )
 }
 
-birthday_boys_season_stats %>%
-  select(player_id, season, player_full_name, runs, outs) %>%
+birthday_boys_season_stats <- birthday_boys_season_stats %>%
+  mutate(game_year = as.character(season)) %>%
+  mutate(innings = outs / 3)
+
+birthday_boys_non_birthday <- birthday_boys_season_stats %>%
+  inner_join(birthday_pitchers,
+             by = c('player_id', 'game_year'),
+             suffix = c('_fs', '_bd'),
+             multiple = 'all'
+  ) %>%
+  mutate(batters_faced = batters_faced_fs - batters_faced_bd,
+         outs = outs_fs - outs_bd,
+         strike_outs = strike_outs_fs - strike_outs_bd,
+         runs = runs_fs - runs_bd,
+         base_on_balls = base_on_balls_fs - base_on_balls_bd,
+  ) %>%
+  mutate(innings = outs / 3)
+
+birthday_boys_non_birthday %>%
+  select(player_id, season, player_full_name, runs, innings) %>%
   print(n = 10)
 
+# 90 pitcher birthday-games
 nrow(birthday_pitchers)
 
+# no pitcher pitched in two games on his birthday
 nrow(birthday_pitchers %>% distinct(player_id, game_year))
 
+# 71 unique pitchers
 length(unique(birthday_pitchers$player_id))
+
+birthday_ra <- calculate_ra(birthday_pitchers)
+non_birthday_ra <- calculate_ra(birthday_boys_non_birthday)
+
+birthday_runs <- sum(birthday_pitchers$runs)
+birthday_innings <- sum(birthday_pitchers$innings)
+
+bdk <- sum(birthday_pitchers$strike_outs)
+
+nbdk <- sum(birthday_boys_non_birthday$strike_outs)
+
+ra_result <- prop.test(
+  x = c(birthday_runs, nbd_runs),
+  n = c(birthday_innings, nbd_innings),
+  alternative = "two.sided"
+  )
+
+strikeout_result <- prop.test(
+  x = c(bdk, nbdk),
+  n = c(birthday_innings, nbd_innings),
+  alternative = "two.sided"
+)
+
 
 birthdays_stats <- c(
   calculate_ra(birthday_pitchers),
   calculate_k_rate(birthday_pitchers)
 )
 
-full_season_stats <- c(
-  calculate_ra(birthday_boys_season_stats),
-  calculate_k_rate(birthday_boys_season_stats)
+non_bd_stats <- c(
+  calculate_ra(birthday_boys_non_birthday),
+  calculate_k_rate(birthday_boys_non_birthday)
 )

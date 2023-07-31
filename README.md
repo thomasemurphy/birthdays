@@ -3,25 +3,43 @@ This repo contains code (`/src`) and data (`/data`) for exploring whether Major 
 
 ## Methods overview
 
-Player-game box scores were downloaded for 1,108 player-games that fell on the player's birthday between 2005 and 2022. The full-season stats were downloaded for those same players. Aggregate hitting and pitching performance was compared between birthdays and full season.
+Player-game box scores were downloaded for 1,108 player-games that fell on the player's birthday between 2005 and 2022. The full-season stats were downloaded for those same players. Aggregate hitting and pitching performance was compared between birthdays and non-birthdays. Non-birthday stats were calculated by subtracting birthday totals from full-season totals.
 
 ## Results
 
 ### Hitting
 
-This dataset consisted of 1,108 player-birthday-games among 469 unique players. Non-birthday stats were calculated by subtracting birthday-game totals from full-season totals.
+This dataset consisted of 1,108 player-birthday-games among 469 unique players.
 
 |     | Plate appearances | Batting average | On-base average | Slugging average |
 | :--: | :---------: | :--: | :--: | :--: |
-| **Birthdays**     |  3,991     | .249 | .308 | .410 |
 | **Non-birthdays**   | 429,385    | .261 | .328 | .432 |
+| **Birthdays**     |  3,991     | .249 | .308 | .410 |
 | **p-value**   |    | .049 | .0045 | .0039 |
 
 Hitters in this dataset performed statistically significantly worse on their birthdays than on their non-birthdays.
 
 #### Calculating the p-values
 
-Taking for example on-base average, if the players on their birthdays were actually the same players they were on their non-birthdays (.328 OBA), the probability of observing a birthday on-base average of .308 or lower in 3,991 plate appearances (p-value) is .0045.
+Taking for example on-base average, if the players on their birthdays were actually the same players they were on their non-birthdays (.328 OBA), the probability of observing a birthday on-base average of .308 or lower in 3,991 plate appearances (p-value) is .0045. To calculate this in R,
+
+`p_value = pbinom(.308 * 3991, 3991, .328)`
+
+### Pitching
+
+This dataset consisted of 90 pitcher-birthday-games among 71 unique pitchers. Pitchers were compared on the basis of run average (runs allowed per 9 innings) and strikeout rate (strikeouts per 9 innings).
+
+|     | Innings pitched | Runs per 9 | Strikeouts per 9 |
+| :--: | :---------: | :--: | :--: |
+| **Non-birthdays**   | 12,293    | 4.37 | 7.85 |
+| **Birthdays**     |  487.2     | 4.08 | 8.05 |
+| **p-value**   |    | .161 | .313 |
+
+Pitchers in this dataset had a lower run allowance rate and a higher strikeout rate on their birthday. However, due to the smaller sample size of pitcher birthday games, the pitcher birthday performance boost is not statistically significant.
+
+#### Calculating the p-values
+
+The Poisson test (`poisson.test` in R)was used to calculate the p-values for run rate being lower on birthdays than non, and strikeout rate being higher on birthdays than non.
 
 ## More detail on the data pipeline, which is bad
 
