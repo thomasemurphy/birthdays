@@ -27,11 +27,13 @@ calculate_slg <- function(hitter_df) {
   slg
 }
 
-birthday_hits <- read_csv('../data/birthday_stats_cleaned/birthday_hitter_stats.csv')
+# load birthday hitter box scores
+birthday_hits <- read_csv('../data/birthday_stats_cleaned/birthday_hitter_stats.csv') %>%
+  mutate(game_year = substr(game_date, 1, 4))
 
-birthday_hits$game_year <- substr(birthday_hits$game_date, 1, 4)
 unique_years <- unique(birthday_hits$game_year)
 
+# load full-season stats for all player-years in birthday_hits
 birthday_boys_season_stats <- data.frame()
 for (year_str in unique_years) {
   print(year_str)
@@ -43,27 +45,28 @@ for (year_str in unique_years) {
     filter(game_year == year_str) %>%
     pull(player_id)
   birthday_boys_this_year <- season_stats_df %>%
-    filter(player_id %in% players_this_year)
+    filter(player_id %in% players_this_year) %>%
+    mutate(game_year = year_str)
   birthday_boys_season_stats <- rbind(
     birthday_boys_season_stats,
     birthday_boys_this_year
   )
 }
 
-birthday_boys_season_stats <- birthday_boys_season_stats %>%
-  mutate(game_year = as.character(season)) %>%
-  distinct(player_id, game_year, .keep_all = TRUE)
-
+# take a look
 birthday_boys_season_stats %>%
   select(player_id, season, game_year, player_full_name, hits, at_bats) %>%
   print(n = 10)
 
+# subtract birthday stats from full-season stats to get non-birthday stats
 birthday_boys_non_birthday <- birthday_boys_season_stats %>%
   inner_join(birthday_hits,
             by = c('player_id', 'game_year'),
             suffix = c('_fs', '_bd'),
             multiple = 'all'
             ) %>%
+  
+  # take care of double-headers
   group_by(player_id, game_year) %>%
   summarize(
     across(
@@ -73,6 +76,7 @@ birthday_boys_non_birthday <- birthday_boys_season_stats %>%
       c(hits_fs, at_bats_fs, plate_appearances_fs, base_on_balls_fs, hit_by_pitch_fs, total_bases_fs, strike_outs_fs, home_runs_fs),
       max)
     ) %>%
+  
   mutate(hits = hits_fs - hits_bd,
          at_bats = at_bats_fs - at_bats_bd,
          plate_appearances = plate_appearances_fs - plate_appearances_bd,
@@ -83,18 +87,13 @@ birthday_boys_non_birthday <- birthday_boys_season_stats %>%
          home_runs = home_runs_fs - home_runs_bd
          )
 
+# birthday vs non slash lines
 birthdays_slash <- c(
   calculate_ba(birthday_hits),
   calculate_obp(birthday_hits),
   calculate_slg(birthday_hits)
 )
-
-full_season_slash <- c(
-  calculate_ba(birthday_boys_season_stats),
-  calculate_obp(birthday_boys_season_stats),
-  calculate_slg(birthday_boys_season_stats)
-)
-full_season_slash
+birthdays_slash
 
 non_bd_slash <- c(
   calculate_ba(birthday_boys_non_birthday),
@@ -103,39 +102,37 @@ non_bd_slash <- c(
 )
 non_bd_slash
 
-sum(birthday_boys_non_birthday$plate_appearances)
-sum(birthday_boys_season_stats$plate_appearances)
-sum(birthday_hits$plate_appearances)
-
+# birthday totals
 at_bats_bd <- sum(birthday_hits$at_bats)
 hits_bd <- sum(birthday_hits$hits)
 pa_bd <- sum(birthday_hits$plate_appearances)
 ob_bd <- sum(birthday_hits$base_on_balls) + sum(birthday_hits$hit_by_pitch) + hits_bd
 tb_bd <- sum(birthday_hits$total_bases)
 home_runs_bd <- sum(birthday_hits$home_runs)
-
 walks_bd <- sum(birthday_hits$base_on_balls)
 strikeouts_bd <- sum(birthday_hits$strike_outs)
 
+# non-birthday totals
 walks_nbd <- sum(birthday_boys_non_birthday$base_on_balls)
 strikeouts_nbd <- sum(birthday_boys_non_birthday$strike_outs)
 home_runs_nbd <- sum(birthday_boys_non_birthday$home_runs)
-
 pa_nbd <- sum(birthday_boys_non_birthday$plate_appearances)
-
 oba_nbd <- calculate_obp(birthday_boys_season_stats)
 ba_nbd <- calculate_ba(birthday_boys_non_birthday)
 slg_nbd <- calculate_slg(birthday_boys_non_birthday)
+walk_rate_nbd <- walks_nbd / pa_nbd
+k_rate_nbd <- strikeouts_nbd / pa_nbd
+hr_rate_nbd <- home_runs_nbd / pa_nbd
 
+# frequentist aggregate p-values
 p_value_ba <- pbinom(hits_bd, at_bats_bd, ba_nbd)
 p_value_oba <- pbinom(ob_bd, pa_bd, oba_nbd)
 p_value_slg <- pbinom(tb_bd, at_bats_bd, slg_nbd)
-p_value_walks <- pbinom(walks_bd, pa_bd, .08518695)
-p_value_strikeouts <- pbinom(strikeouts_bd, pa_bd, strikeouts_nbd / pa_nbd, lower.tail = FALSE)
-p_value_hr <- pbinom(home_runs_bd, pa_bd, home_runs_nbd / pa_nbd)
+p_value_walks <- pbinom(walks_bd, pa_bd, walk_rate_nbd)
+p_value_strikeouts <- pbinom(strikeouts_bd, pa_bd, k_rate_nbd, lower.tail = FALSE)
+p_value_hr <- pbinom(home_runs_bd, pa_bd, hr_rate_nbd)
 
-# look at some players
-
+# by-player birthday performance
 birthday_by_player <- birthday_hits %>%
   group_by(player_id, nameFirst, nameLast, birthDate) %>%
   summarize(pa = sum(plate_appearances),
@@ -143,31 +140,38 @@ birthday_by_player <- birthday_hits %>%
             at_bats = sum(at_bats),
             base_on_balls = sum(base_on_balls),
             hit_by_pitch = sum(hit_by_pitch),
-            total_bases = sum(total_bases)
+            total_bases = sum(total_bases),
+            strike_outs = sum(strike_outs),
+            home_runs = sum(home_runs)
             ) %>%
-  mutate(tot_ob = hits + base_on_balls + hit_by_pitch) %>%
   mutate(
+    tot_ob = hits + base_on_balls + hit_by_pitch,
     obp = tot_ob / pa,
     slg = total_bases / at_bats,
     ops = obp + slg
   ) %>%
   arrange(desc(pa))
 
+# by-player non-birthday performance
 bday_player_ids <- birthday_by_player$player_id
-
 non_birthday_by_player <- birthday_boys_non_birthday %>%
   filter(player_id %in% bday_player_ids) %>%
   group_by(player_id) %>%
   summarize(pa = sum(plate_appearances),
+            hits = sum(hits),
             at_bats = sum(at_bats),
-            tot_ob = sum(hits) + sum(base_on_balls) + sum(hit_by_pitch),
-            total_bases = sum(total_bases)
+            base_on_balls = sum(base_on_balls),
+            hit_by_pitch = sum(hit_by_pitch),
+            total_bases = sum(total_bases),
+            strike_outs = sum(strike_outs),
+            home_runs = sum(home_runs)
   ) %>%
   mutate(
+    tot_ob = hits + base_on_balls + hit_by_pitch,
     obp = tot_ob / pa,
     slg = total_bases / at_bats,
     ops = obp + slg
-    ) %>%
+  ) %>%
   arrange(desc(ops)) %>%
   print(n = 20)
 
@@ -215,6 +219,7 @@ birthday_by_player %>%
   select(nameFirst, nameLast, birthDate, pa_bd, pa_nbd, ops_bd, ops_nbd, ops_diff) %>%
   print(n = 10)
 
+# look for a player by ID
 birthday_hits %>%
   filter(player_id == 455104) %>%
   select(game_date, plate_appearances, hits)
