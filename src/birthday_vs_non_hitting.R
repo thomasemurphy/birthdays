@@ -180,38 +180,45 @@ birthday_vs_non_totals <- birthday_by_player %>%
     non_birthday_by_player,
     by = 'player_id',
     suffix = c('_bd', '_nbd')
-  ) %>%
-  mutate(ops_diff = ops_bd - ops_nbd) %>%
-  arrange(desc(ops_diff)) %>%
-  print(n = 20)
+  )
 
 birthday_sub <- birthday_vs_non_totals %>%
   select(player_id, nameFirst, nameLast, birthDate,
-         pa_bd, at_bats_bd, tot_ob_bd, total_bases_bd
+         pa_bd, at_bats_bd, tot_ob_bd, total_bases_bd,
+         strike_outs_bd, base_on_balls_bd, home_runs_bd
          ) %>%
   mutate(game_type = 'bd') %>%
   rename(c(
     'pa' = 'pa_bd',
     'at_bats' = 'at_bats_bd',
     'tot_ob' = 'tot_ob_bd',
-    'total_bases' = 'total_bases_bd'
+    'total_bases' = 'total_bases_bd',
+    'strike_outs' = 'strike_outs_bd',
+    'walks' = 'base_on_balls_bd',
+    'hr' = 'home_runs_bd'
   ))
 
 non_birthday_sub <- birthday_vs_non_totals %>%
   select(player_id, nameFirst, nameLast, birthDate,
-         pa_nbd, at_bats_nbd, tot_ob_nbd, total_bases_nbd
+         pa_nbd, at_bats_nbd, tot_ob_nbd, total_bases_nbd,
+         strike_outs_nbd, base_on_balls_nbd, home_runs_nbd
   ) %>%
   mutate(game_type = 'nbd') %>%
   rename(c(
     'pa' = 'pa_nbd',
     'at_bats' = 'at_bats_nbd',
     'tot_ob' = 'tot_ob_nbd',
-    'total_bases' = 'total_bases_nbd'
+    'total_bases' = 'total_bases_nbd',
+    'strike_outs' = 'strike_outs_nbd',
+    'walks' = 'base_on_balls_nbd',
+    'hr' = 'home_runs_nbd'
   ))
 
+# save results for
 birthday_vs_non_tidy <- rbind(non_birthday_sub, birthday_sub) %>%
-  arrange(nameLast) %>%
-  write.csv('../data/birthday_vs_non_totals_by_hitter.csv')
+  arrange(nameLast, nameFirst)
+
+write.csv(birthday_vs_non_tidy, '../data/birthday_vs_non_totals_by_hitter.csv')
 
 birthday_by_player %>%
   filter(pa_bd >= 15) %>%
