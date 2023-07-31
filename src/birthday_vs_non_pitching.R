@@ -86,16 +86,18 @@ bdk <- sum(birthday_pitchers$strike_outs)
 
 nbdk <- sum(birthday_boys_non_birthday$strike_outs)
 
-ra_result <- prop.test(
-  x = c(birthday_runs, nbd_runs),
-  n = c(birthday_innings, nbd_innings),
-  alternative = "two.sided"
-  )
+ra_result <- poisson.test(
+  x = birthday_runs,
+  T = birthday_innings,
+  r = nbd_runs / nbd_innings,
+  alternative = 'l'
+)
 
-strikeout_result <- prop.test(
-  x = c(bdk, nbdk),
-  n = c(birthday_innings, nbd_innings),
-  alternative = "two.sided"
+strikeout_result <- poisson.test(
+  x = bdk,
+  T = birthday_innings,
+  r = nbdk / nbd_innings,
+  alternative = 'g'
 )
 
 
