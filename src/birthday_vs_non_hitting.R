@@ -111,6 +111,10 @@ pa_bd <- sum(birthday_hits$plate_appearances)
 ob_bd <- sum(birthday_hits$base_on_balls) + sum(birthday_hits$hit_by_pitch) + hits_bd
 tb_bd <- sum(birthday_hits$total_bases)
 
+walks_bd <- sum(birthday_hits$base_on_balls)
+
+walks_nbd <- sum(birthday_boys_non_birthday$base_on_balls)
+
 oba_nbd <- calculate_obp(birthday_boys_season_stats)
 ba_nbd <- calculate_ba(birthday_boys_non_birthday)
 slg_nbd <- calculate_slg(birthday_boys_non_birthday)
