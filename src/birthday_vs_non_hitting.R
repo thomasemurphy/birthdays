@@ -6,6 +6,9 @@ library(scales)
 library(Lahman)
 library(baseballr)
 
+library(kableExtra)
+library(clipr)
+
 setwd('baseball/birthdays/src')
 
 calculate_obp <- function(hitter_df) {
@@ -218,16 +221,52 @@ non_birthday_sub <- birthday_vs_non_totals %>%
 birthday_vs_non_tidy <- rbind(non_birthday_sub, birthday_sub) %>%
   arrange(nameLast, nameFirst)
 
-write.csv(birthday_vs_non_tidy, '../data/birthday_vs_non_totals_by_hitter.csv')
+# write.csv(birthday_vs_non_tidy, '../data/birthday_vs_non_totals_by_hitter.csv')
 
-birthday_by_player %>%
-  filter(pa_bd >= 15) %>%
-  arrange(ops_diff) %>%
-  select(nameFirst, nameLast, birthDate, pa_bd, pa_nbd, ops_bd, ops_nbd, ops_diff) %>%
-  print(n = 10)
+birthday_vs_non_ops <- birthday_vs_non_tidy %>%
+  mutate(
+    obp = tot_ob / pa,
+    slg = total_bases / at_bats,
+    ops = obp + slg
+    ) %>%
+  pivot_wider(
+    names_from = game_type,
+    id_cols = c(player_id, nameFirst, nameLast, birthDate),
+    values_from = c(pa, ops)
+    ) %>%
+  ungroup() %>%
+  mutate(player = paste(nameFirst, nameLast)) %>%
+  mutate(birthday = format(birthDate, "%b %e")) %>%
+  select(player, birthday, pa_bd, ops_bd, ops_nbd) %>%
+  filter(pa_bd >= 16) %>%
+  mutate(ops_diff = ops_bd - ops_nbd) %>%
+  rename(c(
+    'birthday PA' = 'pa_bd',
+    'birthday OPS' = 'ops_bd',
+    'non-birthday OPS' = 'ops_nbd',
+    'birthday boost' = 'ops_diff'
+  )
+  ) %>%
+  arrange(desc(`birthday boost`))
 
-# look for a player by ID
-birthday_hits %>%
-  filter(player_id == 455104) %>%
-  select(game_date, plate_appearances, hits)
-  
+birthday_best <- birthday_vs_non_ops %>%
+  arrange(desc(`birthday boost`)) %>%
+  slice_head(n = 10)
+
+birthday_worst <- birthday_vs_non_ops %>%
+  arrange(`birthday boost`) %>%
+  slice_head(n = 10)
+
+birthday_worst %>%
+  mutate(`birthday OPS` = formatC(`birthday OPS`, format = "f", digits = 3)) %>%
+  mutate(`non-birthday OPS` = formatC(`non-birthday OPS`, format = "f", digits = 3)) %>%
+  mutate(`birthday boost` = formatC(`birthday boost`, format = "f", digits = 3)) %>%
+  # kable_styling() %>%
+  kable(format = 'pipe') %>%
+  write_clip()
+
+# Step 1: Use kable() with format="pipe" to generate the pipe-separated table
+pipe_table <- your_tibble %>%
+  kable(format = "pipe")
+
+write_clip(pipe_table)

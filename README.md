@@ -41,6 +41,40 @@ Pitchers in this dataset had a lower run allowance rate and a higher strikeout r
 
 The Poisson test (`poisson.test` in R) was used to calculate the p-values for run rate being lower on birthdays than non, and strikeout rate being higher on birthdays than non.
 
+### Best birthday boys
+
+Players were filtered by having at least 16 birthday plate appearances, resulting in 82 players. Birthday boost was calculated as the difference between birthday OPS and non-birthday OPS. Below are the top 10 birthday boys.
+
+|player            |birthday | birthday PA|birthday OPS |non-birthday OPS |birthday boost |
+|:-----------------|:--------:|:-----------:|:------------:|:----------------:|:--------------:|
+|Mike Trout        |Aug  7   |          18|1.567        |0.988            |0.579          |
+|Andrew Benintendi |Jul  6   |          24|1.351        |0.780            |0.572          |
+|Joc Pederson      |Apr 21   |          26|1.375        |0.821            |0.554          |
+|Adam Duvall       |Sep  4   |          16|1.286        |0.785            |0.501          |
+|Yonder Alonso     |Apr  8   |          17|1.221        |0.737            |0.484          |
+|Austin Hedges     |Aug 18   |          16|1.080        |0.612            |0.468          |
+|José Ramírez      |Sep 17   |          27|1.167        |0.819            |0.349          |
+|Trea Turner       |Jun 30   |          17|1.162        |0.827            |0.335          |
+|Miguel Cabrera    |Apr 18   |          21|1.159        |0.834            |0.325          |
+|Jason Heyward     |Aug  9   |          16|1.038        |0.741            |0.298          |
+
+### Birthday losers
+
+Below are the top 10 birthday losers, ranked in order of birthday boost.
+
+|player          |birthday | birthday PA|birthday OPS |non-birthday OPS |birthday boost |
+|:-----------------|:--------:|:-----------:|:------------:|:----------------:|:--------------:|
+|Justin Upton    |Aug 25   |          20|0.050        |0.810            |-0.760         |
+|Chris Iannetta  |Apr  8   |          22|0.045        |0.712            |-0.666         |
+|Carlos Correa   |Sep 22   |          23|0.317        |0.830            |-0.513         |
+|Ian Desmond     |Sep 20   |          17|0.248        |0.740            |-0.492         |
+|Brandon Belt    |Apr 20   |          22|0.336        |0.823            |-0.486         |
+|Hunter Pence    |Apr 13   |          17|0.301        |0.761            |-0.459         |
+|Zack Cozart     |Aug 12   |          21|0.295        |0.711            |-0.416         |
+|George Springer |Sep 19   |          25|0.467        |0.843            |-0.376         |
+|Maikel Franco   |Aug 26   |          17|0.368        |0.739            |-0.372         |
+|Josh Bell       |Aug 14   |          21|0.458        |0.817            |-0.358         |
+
 ## More detail on the data pipeline, which is bad
 
 The data pipeline is very inefficient. If you can make it better, submit a pull request!
